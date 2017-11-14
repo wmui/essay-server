@@ -1,0 +1,32 @@
+{
+  "name": "vueblog-server",
+  "version": "0.0.1",
+  "description": "vueblog api server",
+  "author": "qq22337383@gmail.com",
+  "license": "GPL-3.0",
+  "private": false,
+  "scripts": {
+    "dev": "node server"
+  },
+  "engines": {
+    "node": ">=7.0",
+    "npm": ">=4.0"
+  },
+  "keywords": [
+    "vue",
+    "vue-ssr",
+    "vueblog"
+  ],
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.4",
+    "formidable": "^1.1.1",
+    "js-cookie": "^2.1.4",
+    "jsdom": "^11.1.0",
+    "jsonwebtoken": "^7.4.1",
+    "mongodb": "^2.2.26"
+  },
+  "devDependencies": {
+    "cors": "^2.8.3"
+  }
+}
