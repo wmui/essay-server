@@ -1,95 +1,68 @@
-/*const { JSDOM } = require('jsdom')
-const dom = new JSDOM('<!DOCTYPE html></html>', { url: 'http://localhost:8080' })
-global.window = dom.window
-global.document = window.document
-global.navigator = window.navigator*/
-
-const cookieParser = require('cookie-parser')
-const router = require('./server/router.js')
-const cors = require('cors')
-const hasToken = require('./server/has-token.js')
-
+const express = require('express')
 const fs = require('fs')
 const path = require('path')
+const cors = require('cors')
+const router = require('./server/router.js')
 const resolve = file => path.resolve(__dirname, file)
-const express = require('express')
-
 const serve = (path, cache) => express.static(resolve(path), {
-  maxAge: cache ? 1000 * 60 * 60 * 24 * 30 : 0
-})
-
+  maxAge: cache ? 1000 * 60 * 60 * 24 * 30 : 0 })
+const hasToken = require('./server/has-token.js')
 const app = express()
-app.use(cookieParser())
 app.use(cors())
 app.use('/public', serve('./public', false))
-// client http intercept
-app.get('/login', function(req, res, next) {
-  if (req.cookies.token) {
-    res.redirect('/')
-  } else {
-    next()
-  }
-})
+// 获取已发布文章列表
+app.get('/v1/posts', router.posts)
 
-// server http intercept
-app.get(['/admin', '/admin/*', '/publish', '/publish/*', '/updateAdminPassword', '/updateAdminInfo'], function(req, res, next) {
-  if (req.cookies.token) {
-    next()
-  } else {
-    res.redirect('/login')
-  }
-})
+// 获取管理员信息
+app.get('/v1/administrator', router.admin)
 
-// published articles
-app.get('/api/posts', router.posts)
+// 获取文章详情 eg:http://localhost:8080/v1/article?id=1496841740682
+app.get('/v1/article', router.getArticle)
 
-// administrator infomation
-app.get('/api/administrator', router.admin)
+// 获取标签列表
+app.get('/v1/tags', router.tags)
 
-// article detail content http://localhost:8080/api/article?id=1496841740682
-app.get('/api/article', router.getArticle)
+// 获取某个标签下的文章列表  eg: http://localhost:8080/v1/tag?tag=javascript
+app.get('/v1/tag', router.tag)
 
-// tags infomation
-app.get('/api/tags', router.tags)
+// 搜索(目前仅支持按标题搜索) eg:http://localhost:8080/v1/search?q=j
+app.get('/v1/search', router.search)
 
-// get articles by tag http://localhost:8080/api/tag?tag=javascript
-app.get('/api/tag', router.tag)
+// 获取归档列表
+app.get('/v1/archives', router.archives)
 
-// search articles http://localhost:8080/api/search?q=js
-app.get('/api/search', router.search)
+// 获取某个归档下的文章列表 eg:http://localhost:8080/v1/archive?date=201706
+app.get('/v1/archive', router.archive)
 
-// archives infomation
-app.get('/api/archives', router.archives)
+// 获取所有文章(包括草稿)
+app.get('/v1/articles', hasToken, router.articles)
 
-// get articles by archive http://localhost:8080/api/archive?date=201706
-app.get('/api/archive', router.archive)
+// 管理员登录
+app.post('/v1/login', router.login)
 
-// all articles
-app.get('/api/articles', router.articles)
+// 发布文章，发布草稿，编辑文章
+app.post('/v1/article', hasToken, router.article)
 
-// publish or edit article
-app.post('/api/article', hasToken, router.article)
+// 更新管理员信息
+app.put('/v1/administrator', hasToken, router.updateInfo)
 
-// administrator login
-app.post('/api/login',router.login)
+// 更新管理员头像
+app.post('/v1/avatar', hasToken, router.avatar)
 
-// administrator logout
-app.post('/api/logout', router.logout)
+// 发布文章时，文章中的图片上传接口
+app.post('/v1/upload', hasToken, router.upload)
 
-// update administrator infomation
-app.put('/api/administrator', hasToken, router.updateAdminInfo)
+// 修改密码
+app.put('/v1/password', hasToken, router.updatePassword)
 
-// update administrator avatar
-app.post('/api/avatar', hasToken, router.avatar)
+// 删除文章 eg: http://localhost:8080/v1/article?id=1496841740682
+app.delete('/v1/article', hasToken, router.deleteArticle)
 
-app.post('/api/upload', hasToken, router.upload)
-
-// update administrator password
-app.put('/api/password', hasToken, router.updateAdminPassword)
-
-// delete article  http://localhost:8080/api/article?id=1496841740682
-app.delete('/api/article', hasToken, router.deleteArticle)
-
+// api地址错误处理
+app.get('*', router.noData)
+app.post('*', router.noData)
+app.put('*', router.noData)
+app.delete('*', router.noData)
 app.listen(8080, () => {
   console.log('server started at localhost:8080')
 })

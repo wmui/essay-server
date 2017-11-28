@@ -1,20 +1,20 @@
 const jwt = require('jsonwebtoken')
+const db = require('./db.js')
 module.exports = (req, res, next) => {
-  let token = req.cookies.token;
-  let username = req.cookies.username;
-  let id = req.cookies.id;
-  if (token) {
-    jwt.verify(token, 'secret', function(err, decoded) {
-      if (!err && decoded.username === username && decoded.id === id) {
-        req.decoded = decoded
+  const clientToken = req.headers.token
+  if (clientToken) {
+    const decoded = jwt.verify(clientToken, 'vueblog');
+    // 从token中拿到用户名和userID
+    const username = decoded.username
+    const userID = decoded.userID
+    // 查找数据库对比用户信息
+    db.find('users', {}, function(err, result) {
+      if (result[0].user === username && result[0]._id + '' === userID) {
         next()
       } else {
-        res.cookie('token', '', { maxAge: 0 })
-        res.cookie('username', '', { maxAge: 0 })
-        res.cookie('id', '', { maxAge: 0 })
         return res.json({
-          "code": 401,
-          "message": "登录失败"
+          code: 401,
+          message: "验证失败"
         })
       }
     })
