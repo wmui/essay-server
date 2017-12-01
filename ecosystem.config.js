@@ -28,7 +28,7 @@ module.exports = {
       host : '198.13.32.165',
       ref  : 'origin/master',
       repo : 'git@github.com:wmui/vueblog-server.git',
-      path : '/www/vueblog-server',
+      path : '/www',
       'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env production'
     },
     dev : {
@@ -36,7 +36,7 @@ module.exports = {
       host : '198.13.32.165',
       ref  : 'origin/master',
       repo : 'git@github.com:wmui/vueblog-server.git',
-      path : '/www/vueblog-server',
+      path : '/www',
       'post-deploy' : 'npm install && pm2 reload ecosystem.config.js --env dev',
       env  : {
         NODE_ENV: 'dev'
