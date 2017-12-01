@@ -29,7 +29,7 @@ module.exports = {
       ref  : 'origin/master',
       repo : 'git@github.com:wmui/vueblog-server.git',
       path : '/www',
-      'post-deploy' : 'cd vueblog-server && npm install && pm2 reload ecosystem.config.js --env production'
+      'post-deploy' : 'cd /www/vueblog-server && npm install && pm2 reload ecosystem.config.js --env production'
     },
     dev : {
       user : 'root',
@@ -37,7 +37,7 @@ module.exports = {
       ref  : 'origin/master',
       repo : 'git@github.com:wmui/vueblog-server.git',
       path : '/www',
-      'post-deploy' : 'cd vueblog-server && npm install && pm2 reload ecosystem.config.js --env dev',
+      'post-deploy' : 'cd /www/vueblog-server && npm install && pm2 reload ecosystem.config.js --env dev',
       env  : {
         NODE_ENV: 'dev'
       }
