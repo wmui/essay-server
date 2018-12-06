@@ -8,21 +8,20 @@
     "start": "cross-env NODE_ENV=production nodemon -w ./server --exec node server"
   },
   "dependencies": {
-    "@koa/cors": "^2.2.1",
     "axios": "^0.18.0",
+    "body-parser": "^1.18.3",
+    "cookie-parser": "^1.4.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
     "formidable": "^1.1.1",
     "jsonwebtoken": "^8.1.1",
-    "koa": "^2.4.1",
-    "koa-bodyparser": "^4.2.0",
-    "koa-logger": "^3.2.0",
-    "koa-router": "^7.3.0",
-    "koa-static": "^4.0.2",
     "markdown-it": "^8.4.0",
     "md5": "^2.2.1",
     "mongoose": "^5.0.1",
     "nodemailer": "^4.6.7"
   },
   "devDependencies": {
+    "bunyan": "^1.8.12",
     "cross-env": "^5.0.1",
     "nodemon": "^1.18.7",
     "scmp": "^2.0.0"

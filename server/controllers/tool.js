@@ -1,33 +1,36 @@
 const MarkdownIt = require('markdown-it')
 const mongoose = require('mongoose')
 const config = require('../config')
-const nodemailer = require('nodemailer')
 const Article = mongoose.model('Article')
 
 // sitemap
-exports.sitemap = async(ctx, next) => {
+exports.sitemap = async (req, res, next) => {
   let sitemap = ''
   let head = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\r\n`
   let tail = '</urlset>'
-  let res = await Article.find({ publish: true }).sort({ 'createdAt': -1 }).exec()
-  let body = res.reduce((prev, curr) => {
+  let articles = await Article.find({
+    flag: { $ne: 3 }
+  }).sort({
+    'created_at': -1
+  }).exec()
+  let body = articles.reduce((prev, curr) => {
     prev += `
       <url>
         <loc>${config.domain}/detail/${curr.id}</loc>
-        <lastmod>${curr.updatedAt}</lastmod>
+        <lastmod>${curr.updated_at}</lastmod>
         <priority>0.6</priority>
       </url>`.trim()
     return prev
   }, '')
   sitemap = head + body + tail
-  ctx.type = 'application/xml'
-  ctx.res.end(sitemap)
+  res.set('Content-Type', 'application/xml')
+  res.end(sitemap)
 }
 
 
 // rss
-exports.rss = async(ctx, next) => {
+exports.rss = async (req, res, next) => {
   let rss = ''
   let head = `<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
@@ -38,9 +41,13 @@ exports.rss = async(ctx, next) => {
       <language>zh-CN</language>
       <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\r\n`
   let tail = `</channel>\r\n</rss>`
-  let res = await Article.find({ publish: true }).limit(10).sort({ 'createdAt': -1 }).exec()
-  let body = res.reduce((prev, curr) => {
-    let date = new Date(curr.updatedAt).toUTCString()
+  let articles = await Article.find({
+    flag: { $ne: 3 }
+  }).limit(10).sort({
+    'created_at': -1
+  }).exec()
+  let body = articles.reduce((prev, curr) => {
+    let date = new Date(curr.updated_at).toUTCString()
     let md = new MarkdownIt()
     let content = md.render(curr.content)
       .replace(/&/g, '&amp;')
@@ -58,15 +65,16 @@ exports.rss = async(ctx, next) => {
       </item>`.trim()
     return prev
   }, '')
-  ctx.type = 'application/xml'
+  
+  res.set('Content-Type', 'application/xml')
   rss = head + body + tail
-  ctx.res.end(rss)
+  res.end(rss)
 }
 
 
 
 // robots
-exports.robots = (ctx, next) => {
+exports.robots = (req, res, next) => {
   let robots = `
     User-agent: *
     Allow: /
@@ -78,53 +86,6 @@ exports.robots = (ctx, next) => {
     User-agent: EtaoSpider
     Disallow: /
     User-agent:`.trim()
-  ctx.res.end(robots)
+  res.end(robots)
 }
 
-exports.sendEmail = async (ctx, next) => {
-  let body = ctx.request.body
-  let {
-    fromUserNickname,
-    fromUserContent,
-    fromUserEmail,
-    toUserNickname,
-    toUserContent,
-    toUserEmail,
-    articleId
-  } = body
-  if (!fromUserNickname || !fromUserContent || !fromUserEmail || !toUserNickname || !toUserContent || !toUserEmail || !articleId) {
-    return (ctx.body = {
-      success: false,
-      err: 'Field incomplete'
-    })
-  }
-  let transporter = nodemailer.createTransport({
-    service: 'qq',
-    port: 465,
-    secure: true,
-    auth: {
-      user: config.emailConfig.user,
-      pass: config.emailConfig.pass
-    }
-  })
-  let mailOptions = {
-    from: config.emailConfig.user,
-    to: toUserEmail,
-    subject: '博客评论通知',
-    html: `<p>${fromUserNickname}回复了你的评论：<p>
-    <p>原内容：${toUserContent}<p>
-    <p>回复内容：${fromUserContent}<p>
-    <p><a href="${config.domain}/detail/${articleId}">查看原文</a></p>`.trim()
-  }
-  await transporter.sendMail(mailOptions).then(function(info){
-    ctx.body = {
-      success: true,
-      data: info
-    }
-  }).catch(function(err){
-     ctx.body = {
-      success: false,
-      err: err
-    }
-  })
-}

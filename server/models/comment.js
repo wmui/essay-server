@@ -14,11 +14,11 @@ const CommentSchema = new Schema({
     type: String,
     default: ''
   },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
   },
-  replyId: {
+  reply_id: {
     type: String,
     default: ''
   }

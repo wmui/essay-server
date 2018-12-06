@@ -40,11 +40,11 @@ const UserSchema = new Schema({
     type: Number,
     default: 0
   },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
   },
-  updatedAt: {
+  updated_at: {
     type: Date,
     default: Date.now
   }

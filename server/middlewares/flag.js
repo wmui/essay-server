@@ -1,19 +1,30 @@
-exports.stick = async (ctx, next) => {
-   ctx.params.flag = 0
-   await next()
-}
+module.exports = (flag) => {
+  return (req, res, next) => {
+    switch (flag) {
+      case 'stick':
+        res.locals.flag = 0
+        next()
+        break;
+      
+      case 'index':
+        res.locals.flag = 1
+        next()
+        break;
 
-exports.index = async (ctx, next) => {
-  ctx.params.flag = 1
-  await next()
-}
+      case 'tag':
+        res.locals.flag = 2
+        next()
+        break;
+      
+      case 'draft':
+        res.locals.flag = 3
+        next()
+        break;
 
-exports.byTag = async (ctx, next) => {
-  ctx.params.flag = 2
-  await next()
-}
-
-exports.draft = async (ctx, next) => {
-  ctx.params.flag = 3
-  await next()
+      default:
+        res.locals.flag = 1
+        next()
+        break;
+    }
+  }
 }

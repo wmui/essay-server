@@ -30,19 +30,19 @@ const ArticleSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Tag'
   }],
-  previousArticle: {
+  previous_article: {
     type: Object,
     default: null
   },
-  nextArticle: {
+  next_article: {
     type: Object,
     default: null
   },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
   },
-  updatedAt: {
+  updated_at: {
     type: Date,
     default: Date.now
   }
@@ -56,5 +56,5 @@ ArticleSchema.options.toJSON = {
     delete ret._id
   }
 }
-// db.users.update({}, {$set: {github: 'https://github.com/wmui'}}, {multi: 1})
+
 mongoose.model('Article', ArticleSchema)

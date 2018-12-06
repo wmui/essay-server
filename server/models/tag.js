@@ -6,11 +6,11 @@ const TagSchema = new Schema({
     type: String,
     default: ''
   },
-  createdAt: {
+  created_at: {
     type: Date,
     default: Date.now
   },
-  updatedAt: {
+  updated_at: {
     type: Date,
     default: Date.now
   }

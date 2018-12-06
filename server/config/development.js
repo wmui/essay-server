@@ -13,19 +13,19 @@ module.exports = {
   },
   mongodb: {
     host: '127.0.0.1',
-    database: 'essay',
+    database: 'essay-dev',
     port: 27017,
     username: '',
     password: '',
   },
   githubConfig: {
-    githubClient: '',
-    githubSecret: '',
+    githubClient: '9588f02db3f89d176f36',
+    githubSecret: '10f4f1daa81764664fafb2e50be2c6985ef139f8',
     scope: 'user',
   },
   emailConfig: {
     user: '',
     pass: '',
   },
-  domain: 'http://127.0.0.1:3001'
+  domain: 'http://127.0.0.1:3000', // 前端域名
 }

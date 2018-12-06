@@ -1,10 +1,8 @@
 ## Essay server
 
-### 前言
+Essay server API 服务
 
-Essay server API 基于 RESTful 标准设计   
-
-### 本地运行
+### 运行
 
 #### 启动数据库
 
@@ -21,12 +19,8 @@ $ sudo mongod --dbpath yourDBpath
 $ git clone https://github.com/wmui/essay-server.git
 $ cd essay-server
 $ npm install
-$ npm run dev # 浏览器访问 http://127.0.0.1:3001
+$ npm run dev # 浏览器访问 http://127.0.0.1:3010
 ```
-
-### API 文档
-
-
 
 ### 开源协议
 

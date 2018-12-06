@@ -1,14 +1,17 @@
 const mongoose = require('mongoose')
-const path = require('path')
-const formidable = require('formidable')
-const config = require('../config')
 const Article = mongoose.model('Article')
 
 // flag: 0置顶 1首页 2非首页 3草稿
-exports.getArticles = async (ctx, next) => {
+exports.getArticles = async (req, res, next) => {
   let {
-    page = 1, limit = 15, flag = 1, id = '', keyword = ''
-  } = ctx.params
+    page = 1, 
+    limit = 15, 
+    id = '', 
+    keyword = ''
+  } = req.params
+
+  let flag = res.locals.flag
+  
   let findOption = {}
   keyword = decodeURIComponent(keyword)
   page = Number((page - 1) * limit) || 0
@@ -46,8 +49,7 @@ exports.getArticles = async (ctx, next) => {
     }
   }
   try {
-    let total = await Article.find(findOption).exec()
-    total = total.length
+    let total = (await Article.find(findOption).exec()).length
 
     let data = await Article.find(findOption)
       .populate({
@@ -57,53 +59,26 @@ exports.getArticles = async (ctx, next) => {
       .skip(page)
       .limit(limit)
       .sort({
-        'createdAt': -1
+        'created_at': -1
       })
       .exec()
 
-    ctx.body = {
+    res.json({
       success: true,
       data: data,
       total: total
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e,
       total: 0
-    }
+    })
   }
 }
 
-
-exports.getDrafts = async (ctx, next) => {
-  const data = await Article.find({
-      flag: 3
-    })
-    .populate({
-      path: 'tags',
-      select: 'id name'
-    })
-    .sort({
-      'updatedAt': -1
-    })
-    .exec()
-  ctx.body = {
-    success: true,
-    data: data
-  }
-}
-
-exports.getArticle = async (ctx, next) => {
-  let {
-    id
-  } = ctx.params
-  if (!id) {
-    return (ctx.body = {
-      success: false,
-      err: 'id is required'
-    })
-  }
+exports.getArticle = async (req, res, next) => {
+  let id = req.params.id
 
   try {
     let article = await Article.findOne({
@@ -118,7 +93,6 @@ exports.getArticle = async (ctx, next) => {
         populate: {
           path: 'user'
         }
-        // options: {sort:{createdAt: -1}}
       })
       .exec()
 
@@ -137,132 +111,68 @@ exports.getArticle = async (ctx, next) => {
     await Article.findByIdAndUpdate(id, {
       views: article.views + 1
     }).exec()
-    ctx.body = {
+    res.json({
       success: true,
       data: article
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.postArticle = async (ctx, next) => {
-  let body = ctx.request.body
-  let {
-    title,
-    content
-  } = body
-  if (!title || !content) {
-    return (ctx.body = {
-      success: false,
-      err: 'Field incomplete'
-    })
-  }
+exports.postArticle = async (req, res, next) => {
+  let body = req.body
 
   try {
     body = await new Article(body)
     await body.save()
-    ctx.body = {
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
-
 
 // 修改文章
-exports.patchArticle = async (ctx, next) => {
-  let body = ctx.request.body
-  body.updatedAt = Date.now()
-  let {
-    id,
-    title,
-    content
-  } = body
-  if (!id || !title || !content) {
-    return (ctx.body = {
-      success: false,
-      err: 'Field incomplete'
-    })
-  }
+exports.patchArticle = async (req, res, next) => {
+  let body = req.body
+  body.updated_at = Date.now()
 
   try {
-    body = await Article.findByIdAndUpdate(id, body).exec()
-    ctx.body = {
+    body = await Article.findByIdAndUpdate(body.id, body).exec()
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.deleteArticle = async (ctx, next) => {
-  let {
-    id
-  } = ctx.params
-
-  if (!id) {
-    return (ctx.body = {
-      success: false,
-      err: 'id is required'
-    })
-  }
+exports.deleteArticle = async (req, res, next) => {
+  let id = req.params.id
 
   try {
     let body = await Article.findByIdAndRemove(id).exec()
-    ctx.body = {
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
-  }
-}
-
-exports.upload = async (ctx, next) => {
-  let form = new formidable.IncomingForm()
-
-  function getImgUrl(ctx) {
-    return new Promise((resolve, reject) => {
-      form.parse(ctx.req, function (err, fields, files) {
-        if (err) {
-          console.log(err)
-          reject(err)
-        }
-        // console.log(files)
-        let lastItem = files[Object.keys(files)[Object.keys(files).length - 1]]
-
-        // 获取文件后缀名
-        let extname = Date.now() + path.extname(lastItem.name)
-        let oldUrl = lastItem.path
-        let newUrl = './public/' + extname
-
-        // 文件重命名，上传到服务器
-        let readStream = fs.createReadStream(oldUrl)
-        let writeStream = fs.createWriteStream(newUrl)
-        readStream.pipe(writeStream)
-        let imgUrl = config.domain + '/public/' + extname
-        resolve(imgUrl)
-      })
     })
   }
-
-  await getImgUrl(ctx).then((url) => {
-    ctx.body = url
-  })
 }

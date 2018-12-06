@@ -4,50 +4,48 @@ const Article = mongoose.model('Article')
 const Comment = mongoose.model('Comment')
 const User = mongoose.model('User')
 
-exports.postComment = async(ctx, next) => {
-  let body = ctx.request.body
-  let { id, token, content, replyId  = ''} = body
-  // replyId表示是一条回复，是可选的
-  if (!id || !token || !content) {
-    return (ctx.body = {
-      success: false,
-      err: 'Field incomplete'
+exports.postComment = async (req, res, next) => {
+  const {
+    replyId = '',
+    id,
+    content,
+  } = req.body
+  const username = res.locals.username
+  const user = await User.findOne({
+    username
+  })
+
+  try {
+    const comment = await new Comment({
+      user: user._id,
+      article: id,
+      content: content,
+      reply_id: replyId
     })
-  }
-  // 根据token获取用户名
-  const { data } = await axios.get('https://api.github.com/user?access_token=' + token)
-  if (data.login) {
-    let user = await User.findOne({ username: data.login })
-    try {
-      let comment = await new Comment({
-        content: content,
-        user: user._id,
-        article: id,
-        replyId: replyId
-      })
-      // 保存用户评论
-      await comment.save()
-      // 更新文章评论
-      await Article.findByIdAndUpdate(id, { $push: { comments: comment } }, { safe: true, upsert: true })
-      ctx.body = {
-        success: true,
-        data: comment
+    // 保存用户评论
+    await comment.save()
+    // 更新文章评论
+    await Article.findByIdAndUpdate(id, {
+      $push: {
+        comments: comment
       }
-    } catch (e) {
-      ctx.body = {
-        success: false,
-        err: e
-      }
-    }
-  } else {
-    ctx.body = {
+    }, {
+      safe: true,
+      upsert: true
+    })
+    res.json({
+      success: true,
+      data: comment
+    })
+  } catch (e) {
+    res.json({
       success: false,
-      err: 'Token is invalid'
-    }
+      err: e
+    })
   }
 }
 
-exports.getComments = async(ctx, next) => {
+exports.getComments = async(req, res, next) => {
   let comments = await Comment.find({})
     .populate({
       path: 'user'
@@ -56,41 +54,34 @@ exports.getComments = async(ctx, next) => {
       path: 'article',
       select: 'id title'
     })
-    .sort({ 'createdAt': -1 })
+    .sort({ 'created_at': -1 })
     .exec()
   try {
-    ctx.body = {
+    res.json({
       success: true,
       data: comments
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.deleteComment = async(ctx, next) => {
-  let { id } = ctx.params
-
-  if (!id) {
-    return (ctx.body = {
-      success: false,
-      err: 'id is required'
-    })
-  }
+exports.deleteComment = async(req, res, next) => {
+  const id = req.params.id
 
   try {
     let body = await Comment.findByIdAndRemove(id).exec()
-    ctx.body = {
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }

@@ -12,7 +12,7 @@ module.exports =  {
     expiresIn: 1296000,
   },
   mongodb: {
-    host: '118.193.175.253',
+    host: '127.0.0.1',
     database: 'essay',
     port: 27017,
     username: '',
@@ -27,5 +27,5 @@ module.exports =  {
     user: '',
     pass: '',
   },
-  domain: 'https://api.86886.wang'
+  domain: 'https://api.86886.wang',
 }

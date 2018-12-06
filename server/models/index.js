@@ -1,6 +1,6 @@
 const mongoose = require('mongoose')
 const md5 = require('md5')
-const config = require('../config/index.js')
+const config = require('../config')
 require('./user')
 require('./tag')
 require('./article')

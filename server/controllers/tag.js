@@ -1,100 +1,77 @@
 const mongoose = require('mongoose')
 const Tag = mongoose.model('Tag')
 
-exports.getTags = async (ctx, next) => {
+exports.getTags = async (req, res) => {
   try {
     let data = await Tag.find({}).sort({
-      'updatedAt': -1
+      'updated_at': -1
     }).exec()
-    ctx.body = {
+    res.json({
       success: true,
       data: data
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.postTag = async (ctx, next) => {
-  let body = ctx.request.body
-  let {
-    name
-  } = body
-
-  if (!name) {
-    return (ctx.body = {
-      success: false,
-      err: 'Tag name is required'
-    })
-  }
-
+exports.postTag = async (req, res) => {
+  let body = req.body
   try {
+    let tag = await Tag.findOne(body)
+    if(tag) {
+      return (res.json({
+        success: false,
+        err: 'tag already exists'
+      }))
+    }
     body = new Tag(body)
     await body.save()
-    ctx.body = {
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.patchTag = async (ctx, next) => {
-  let body = ctx.request.body
-  body.updatedAt = Date.now()
-  const {
-    id
-  } = body
-  if (!id) {
-    return (ctx.body = {
-      success: false,
-      err: 'id is required'
-    })
-  }
+exports.patchTag = async (req, res) => {
+  let body = req.body
+  body.updated_at = Date.now()
 
   try {
-    body = await Tag.findByIdAndUpdate(id, body).exec()
-    ctx.body = {
+    body = await Tag.findByIdAndUpdate(body.id, body).exec()
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
 
-exports.deleteTag = async (ctx, next) => {
-  let {
-    id
-  } = ctx.params
-
-  if (!id) {
-    return (ctx.body = {
-      success: false,
-      err: 'id is required'
-    })
-  }
-
+exports.deleteTag = async (req, res) => {
+  let id = req.params.id
   try {
-    let body = await Tag.findByIdAndRemove(id).exec()
-    ctx.body = {
+    body = await Tag.findByIdAndRemove(id).exec()
+    res.json({
       success: true,
       data: body
-    }
+    })
   } catch (e) {
-    ctx.body = {
+    res.json({
       success: false,
       err: e
-    }
+    })
   }
 }
