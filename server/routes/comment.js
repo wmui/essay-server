@@ -13,7 +13,7 @@ router
   .get('/comments',
     comment.getComments
   )
-  .delete('/comment:id',
+  .delete('/comment/:id',
     check.params(['id']),
     auth('adminToken'),
     comment.deleteComment
