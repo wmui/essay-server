@@ -1,4 +1,4 @@
 node_modules
 npm-debug.log
 server/public/*
-server/config/production.js
+logs/*.log
